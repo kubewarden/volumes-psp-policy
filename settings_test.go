@@ -9,7 +9,14 @@ func TestParsingSettingsWithAllValuesProvidedFromValidationReq(t *testing.T) {
 	{
 		"request": "doesn't matter here",
 		"settings": {
-			"denied_names": [ "foo", "bar" ]
+			"allowedTypes": [
+				"configMap",
+				"downwardAPI",
+				"emptyDir",
+				"persistentVolumeClaim",
+				"secret",
+				"projected"
+			]
 		}
 	}
 	`
@@ -20,11 +27,13 @@ func TestParsingSettingsWithAllValuesProvidedFromValidationReq(t *testing.T) {
 		t.Errorf("Unexpected error %+v", err)
 	}
 
-	expected := []string{"foo", "bar"}
-	for _, exp := range expected {
-		if !settings.DeniedNames.Contains(exp) {
-			t.Errorf("Missing value %s", exp)
-		}
+	if settings.AllowedTypes[0] != "configMap" ||
+		settings.AllowedTypes[1] != "downwardAPI" ||
+		settings.AllowedTypes[2] != "emptyDir" ||
+		settings.AllowedTypes[3] != "persistentVolumeClaim" ||
+		settings.AllowedTypes[4] != "secret" ||
+		settings.AllowedTypes[5] != "projected" {
+		t.Errorf("Missing value")
 	}
 }
 
@@ -43,14 +52,43 @@ func TestParsingSettingsWithNoValueProvided(t *testing.T) {
 		t.Errorf("Unexpected error %+v", err)
 	}
 
-	if settings.DeniedNames.Cardinality() != 0 {
-		t.Errorf("Expecpted DeniedNames to be empty")
+	if len(settings.AllowedTypes) != 0 {
+		t.Errorf("Expected AllowedTypes to be empty")
 	}
 }
 
-func TestSettingsAreValid(t *testing.T) {
+func TestSettingsWithInvalidEntries(t *testing.T) {
 	request := `
 	{
+		"request": "doesn't matter here",
+		"settings": {
+			"allowedTypes": [
+				"configMap",
+				"*"
+			]
+		}
+	}
+	`
+	rawRequest := []byte(request)
+
+	settings, err := NewSettingsFromValidateSettingsPayload(rawRequest)
+	if err != nil {
+		t.Error("Expected no error, got one")
+	}
+
+	if settings.Valid() {
+		t.Errorf("Expected Settings reported as not valid")
+	}
+
+}
+
+func TestEmptySettingsAreValid(t *testing.T) {
+	request := `
+	{
+		"request": "doesn't matter here",
+		"settings": {
+			"allowedTypes": []
+		}
 	}
 	`
 	rawRequest := []byte(request)
