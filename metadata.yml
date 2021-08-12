@@ -6,13 +6,33 @@ rules:
 mutating: false
 contextAware: false
 annotations:
-  io.kubewarden.policy.title: policy-name
-  io.kubewarden.policy.description: Short description
-  io.kubewarden.policy.author: policy-author
-  io.kubewarden.policy.url: https://github.com/yourorg/policy-name
-  io.kubewarden.policy.source: https://github.com/yourorg/policy-name
+  io.kubewarden.policy.title: psp-volumes
+  io.kubewarden.policy.description: PSP that controls usage of volumes
+  io.kubewarden.policy.author: Kubewarden devs
+  io.kubewarden.policy.url: https://github.com/kubewarden/psp-volumes-policy
+  io.kubewarden.policy.source: https://github.com/kubewarden/psp-volumes-policy
   io.kubewarden.policy.license: Apache-2.0
   io.kubewarden.policy.usage: |
-    Long explaination.
+    Replacement for the Kubernetes Pod Security Policy that controls the usage of
+    volumes in pods.
 
-    **Note well:** this can be Markdown text
+    ## Settings
+
+    The policy takes the list of the allowed volume types using the `allowedTypes`
+    setting. Example:
+
+    ```yaml
+    allowedTypes:
+    - configMap
+    - downwardAPI
+    - emptyDir
+    - persistentVolumeClaim
+    - secret
+    - projected
+    ```
+
+    The default value of allowedTypes is `[ ]`. The special value `*` can be used
+    to allow all kind of volumes.
+
+    No other value can be specified together with `*`. For example,
+    `allowedTypes: ['*', 'configMap']` is not a valid configuration setting.

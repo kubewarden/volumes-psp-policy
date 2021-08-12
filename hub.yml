@@ -1,16 +1,16 @@
-name: policy-name
-description: DESCRIPTION OF YOUR POLICY
-homepage: POLICY HOMEPAGE URL
+name: psp-volumes
+description: PSP that controls usage of volumes
+homepage: https://github.com/kubewarden/psp-volumes-policy
 author:
-  name: policy-authors
-  homepage: https://author1.website
+  name: Kuberwarden devs
+  homepage: https://github.com/kubewarden
 download:
-  # Important: leave the __TAG__ around: this is automatically replaced with the value of the git tag
-  registry: <registry>/<policy-name>:__TAG__
-  # url is optional
-  url: https://github.com/yourorg/policy-name/releases/download/__TAG__/policy.wasm
+  registry: ghcr.io/kubewarden/policies/psp-volumes:__TAG__
+  url: https://github.com/kubewarden/psp-volumes-policy/releases/download/__TAG__/policy.wasm
 keywords:
-  - this is freeform
+  - PSP
+  - Volumes
+  - Pod
 resources:
   - Pod
 mutation: false
