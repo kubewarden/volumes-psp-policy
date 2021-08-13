@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	onelog "github.com/francoispqt/onelog"
@@ -16,33 +17,70 @@ func validate(payload []byte) ([]byte, error) {
 			kubewarden.Code(400))
 	}
 
-	logger.Info("validating request")
+	if settings.AllowedTypes.Cardinality() == 0 {
+		// empty AllowedType list, rejecting
+		return kubewarden.RejectRequest(
+			kubewarden.Message("No volume type is allowed"),
+			kubewarden.NoCode)
+	}
 
-	data := gjson.GetBytes(
-		payload,
-		"request.object.metadata.name")
-
-	if !data.Exists() {
-		logger.Warn("cannot read object name from metadata: accepting request")
+	if (settings.AllowedTypes.Cardinality() == 1) &&
+		settings.AllowedTypes.Contains("*") {
+		// all volume types accepted
 		return kubewarden.AcceptRequest()
 	}
-	name := data.String()
 
-	logger.DebugWithFields("validating ingress object", func(e onelog.Entry) {
-		namespace := gjson.GetBytes(payload, "request.object.metadata.namespace").String()
+	volumes := gjson.GetBytes(
+		payload,
+		"request.object.spec.volumes")
+	if !volumes.Exists() {
+		// pod defines no volumes, accepting
+		return kubewarden.AcceptRequest()
+	}
+
+	logger.DebugWithFields("validating pod object", func(e onelog.Entry) {
+		name := gjson.GetBytes(payload, "request.object.metadata.name").String()
+		namespace := gjson.GetBytes(payload,
+			"request.object.metadata.namespace").String()
 		e.String("name", name)
 		e.String("namespace", namespace)
 	})
 
-	if settings.DeniedNames.Contains(name) {
-		logger.InfoWithFields("rejecting ingress object", func(e onelog.Entry) {
-			e.String("name", name)
-			e.String("denied_names", settings.DeniedNames.String())
+	for _, volume := range volumes.Array() {
+		// obtain volumeName, volumeType:
+		var volumeName, volumeType string
+		volume.ForEach(func(key, value gjson.Result) bool {
+			if key.String() == "name" {
+				volumeName = value.String()
+			} else {
+				// must be the type
+				volumeType = key.String()
+			}
+			return true // keep iterating
 		})
 
+		if !settings.AllowedTypes.Contains(volumeType) {
+			errMsg := fmt.Sprintf("volume '%s' of type '%s' is not in the AllowedTypes list",
+				volumeName, volumeType)
+			if err == nil {
+				err = errors.New(errMsg)
+			} else {
+				err = fmt.Errorf("%w; %s", err, errMsg)
+			}
+
+		}
+	}
+
+	if err != nil {
+		logger.DebugWithFields("rejecting pod object", func(e onelog.Entry) {
+			name := gjson.GetBytes(payload, "request.object.metadata.name").String()
+			namespace := gjson.
+				GetBytes(payload, "request.object.metadata.namespace").String()
+			e.String("name", name)
+			e.String("namespace", namespace)
+		})
 		return kubewarden.RejectRequest(
-			kubewarden.Message(
-				fmt.Sprintf("The '%s' name is on the deny list", name)),
+			kubewarden.Message(err.Error()),
 			kubewarden.NoCode)
 	}
 

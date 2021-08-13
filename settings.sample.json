@@ -1,5 +1,10 @@
 {
-  "denied_names": [
-    "tls-example-ingress"
-  ]
+   "allowedTypes": [
+      "configMap",
+      "downwardAPI",
+      "emptyDir",
+      "persistentVolumeClaim",
+      "secret",
+      "projected"
+   ]
 }
