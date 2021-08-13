@@ -7,7 +7,7 @@ mutating: false
 contextAware: false
 annotations:
   io.kubewarden.policy.title: psp-volumes
-  io.kubewarden.policy.description: PSP that controls usage of volumes
+  io.kubewarden.policy.description: Pod Security Policy that controls usage of volumes
   io.kubewarden.policy.author: Kubewarden devs
   io.kubewarden.policy.url: https://github.com/kubewarden/psp-volumes-policy
   io.kubewarden.policy.source: https://github.com/kubewarden/psp-volumes-policy

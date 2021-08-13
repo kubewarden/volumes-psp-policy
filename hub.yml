@@ -1,5 +1,5 @@
 name: psp-volumes
-description: PSP that controls usage of volumes
+description: Pod Security Policy that controls usage of volumes
 homepage: https://github.com/kubewarden/psp-volumes-policy
 author:
   name: Kuberwarden devs
