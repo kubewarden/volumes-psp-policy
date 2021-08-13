@@ -36,16 +36,14 @@ func NewSettingsFromValidationReq(payload []byte) (Settings, error) {
 // Builds a new Settings instance starting from a Settings
 // payload:
 // {
-//  "settings": {
-//		"allowedTypes": [
-//			"configMap",
-//			"downwardAPI",
-//			"emptyDir",
-//			"persistentVolumeClaim",
-//			"secret",
-//			"projected"
-//		]
-//  }
+//	  "allowedTypes": [
+//	  	"configMap",
+//	  	"downwardAPI",
+//	  	"emptyDir",
+//	  	"persistentVolumeClaim",
+//	  	"secret",
+//	  	"projected"
+//	  ]
 // }
 func NewSettingsFromValidateSettingsPayload(payload []byte) (Settings, error) {
 	return newSettings(
