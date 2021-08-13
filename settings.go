@@ -1,6 +1,7 @@
 package main
 
 import (
+	mapset "github.com/deckarep/golang-set"
 	"github.com/kubewarden/gjson"
 	kubewarden "github.com/kubewarden/policy-sdk-go"
 
@@ -8,7 +9,7 @@ import (
 )
 
 type Settings struct {
-	AllowedTypes []string `json:"allowedTypes"`
+	AllowedTypes mapset.Set `json:"allowedTypes"`
 }
 
 // Builds a new Settings instance starting from a validation
@@ -58,7 +59,7 @@ func newSettings(payload []byte, paths ...string) (Settings, error) {
 	}
 	data := gjson.GetManyBytes(payload, paths...)
 
-	allowedTypes := make([]string, 0)
+	allowedTypes := mapset.NewThreadUnsafeSet()
 
 	if data[0].String() == "" {
 		// empty settings
@@ -68,7 +69,7 @@ func newSettings(payload []byte, paths ...string) (Settings, error) {
 	}
 
 	for _, volumeType := range data[0].Array() {
-		allowedTypes = append(allowedTypes, volumeType.String())
+		allowedTypes.Add(volumeType.String())
 	}
 
 	return Settings{
@@ -77,10 +78,8 @@ func newSettings(payload []byte, paths ...string) (Settings, error) {
 }
 
 func (s *Settings) Valid() bool {
-	for _, allowedType := range s.AllowedTypes {
-		if ( allowedType == "*" ) && (len(s.AllowedTypes) != 1) {
-			return false
-		}
+	if s.AllowedTypes.Contains("*") && (s.AllowedTypes.Cardinality() != 1) {
+		return false
 	}
 	return true
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	mapset "github.com/deckarep/golang-set"
 	kubewarden_testing "github.com/kubewarden/policy-sdk-go/testing"
 )
 
@@ -48,34 +49,34 @@ func TestApproval(t *testing.T) {
 			name:     "pod without volumes",
 			testData: "test_data/request-pod-no-volumes.json",
 			settings: Settings{
-				AllowedTypes: []string{
+				AllowedTypes: mapset.NewSetFromSlice([]interface{}{
 					"configMap",
 					"downwardAPI",
 					"emptyDir",
 					"persistentVolumeClaim",
 					"secret",
 					"projected",
+				}),
 				},
-			},
 		},
 		{
 			name:     "bunch of allowed types, some unexistent",
 			testData: "test_data/request-pod-volumes.json",
 			settings: Settings{
-				AllowedTypes: []string{
+				AllowedTypes: mapset.NewSetFromSlice([]interface{}{
 					"hostPath",
 					"projected",
 					"foo",
-				},
+				}),
 			},
 		},
 		{
 			name:     "all accepted",
 			testData: "test_data/request-pod-volumes.json",
 			settings: Settings{
-				AllowedTypes: []string{
+				AllowedTypes: mapset.NewSetFromSlice([]interface{}{
 					"*",
-				},
+				}),
 			},
 		},
 	} {
@@ -113,7 +114,7 @@ func TestRejection(t *testing.T) {
 			name:     "none accepted, empty AllowedTypes list in settings",
 			testData: "test_data/request-pod-volumes.json",
 			settings: Settings{
-				AllowedTypes: []string{},
+				AllowedTypes: mapset.NewSetFromSlice([]interface{}{}),
 			},
 			error: "No volume type is allowed",
 		},
@@ -121,10 +122,10 @@ func TestRejection(t *testing.T) {
 			name:     "not all types in allowedTypes",
 			testData: "test_data/request-pod-volumes.json",
 			settings: Settings{
-				AllowedTypes: []string{
+				AllowedTypes: mapset.NewSetFromSlice([]interface{}{
 					"secret",
 					"configMap",
-				},
+				}),
 			},
 			error: "volume 'test-var' of type 'hostPath' is not in the AllowedTypes list;"+
 				" volume 'test-var-local-aaa' of type 'hostPath' is not in the AllowedTypes list;"+

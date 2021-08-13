@@ -27,12 +27,12 @@ func TestParsingSettingsWithAllValuesProvidedFromValidationReq(t *testing.T) {
 		t.Errorf("Unexpected error %+v", err)
 	}
 
-	if settings.AllowedTypes[0] != "configMap" ||
-		settings.AllowedTypes[1] != "downwardAPI" ||
-		settings.AllowedTypes[2] != "emptyDir" ||
-		settings.AllowedTypes[3] != "persistentVolumeClaim" ||
-		settings.AllowedTypes[4] != "secret" ||
-		settings.AllowedTypes[5] != "projected" {
+	if !settings.AllowedTypes.Contains("configMap") ||
+		!settings.AllowedTypes.Contains("downwardAPI") ||
+		!settings.AllowedTypes.Contains("emptyDir") ||
+		!settings.AllowedTypes.Contains("persistentVolumeClaim") ||
+		!settings.AllowedTypes.Contains("secret") ||
+		!settings.AllowedTypes.Contains("projected") {
 		t.Errorf("Missing value")
 	}
 }
@@ -52,7 +52,7 @@ func TestParsingSettingsWithNoValueProvided(t *testing.T) {
 		t.Errorf("Unexpected error %+v", err)
 	}
 
-	if len(settings.AllowedTypes) != 0 {
+	if settings.AllowedTypes.Cardinality() != 0 {
 		t.Errorf("Expected AllowedTypes to be empty")
 	}
 }

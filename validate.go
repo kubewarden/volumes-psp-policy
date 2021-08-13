@@ -17,14 +17,15 @@ func validate(payload []byte) ([]byte, error) {
 			kubewarden.Code(400))
 	}
 
-	if len(settings.AllowedTypes) == 0 {
+	if settings.AllowedTypes.Cardinality() == 0 {
 		// empty AllowedType list, rejecting
 		return kubewarden.RejectRequest(
 			kubewarden.Message("No volume type is allowed"),
 			kubewarden.NoCode)
 	}
 
-	if len(settings.AllowedTypes) == 1 && settings.AllowedTypes[0] == "*" {
+	if (settings.AllowedTypes.Cardinality() == 1) &&
+		settings.AllowedTypes.Contains("*") {
 		// all volume types accepted
 		return kubewarden.AcceptRequest()
 	}
@@ -58,13 +59,7 @@ func validate(payload []byte) ([]byte, error) {
 			return true // keep iterating
 		})
 
-		match := false
-		for _, allowedType := range settings.AllowedTypes {
-			if allowedType == volumeType {
-				match = true
-			}
-		}
-		if !match {
+		if !settings.AllowedTypes.Contains(volumeType) {
 			errMsg := fmt.Sprintf("volume '%s' of type '%s' is not in the AllowedTypes list",
 				volumeName, volumeType)
 			if err == nil {
