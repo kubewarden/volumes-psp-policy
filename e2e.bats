@@ -36,10 +36,10 @@
   # this prints the output when one the checks below fails
   echo "output = ${output}"
 
-  # request rejected
-  [ "$status" -eq 0 ]
-  [ $(expr "$output" : '.*allowed.*false') -ne 0 ]
-  [ $(expr "$output" : "Provided settings are not valid") -ne 0 ]
+  # request rejected by settings error
+  [ "$status" -eq 1 ]
+  [ $(expr "$output" : '.*valid.*false') -ne 0 ]
+  [ $(expr "$output" : ".*Provided settings are not valid.*") -ne 0 ]
 }
 
 @test "accept all types" {
