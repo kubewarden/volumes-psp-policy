@@ -60,13 +60,10 @@ func TestParsingSettingsWithNoValueProvided(t *testing.T) {
 func TestSettingsWithInvalidEntries(t *testing.T) {
 	request := `
 	{
-		"request": "doesn't matter here",
-		"settings": {
-			"allowedTypes": [
-				"configMap",
-				"*"
-			]
-		}
+		"allowedTypes": [
+			"configMap",
+			"*"
+		]
 	}
 	`
 	rawRequest := []byte(request)

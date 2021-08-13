@@ -50,7 +50,7 @@ func NewSettingsFromValidationReq(payload []byte) (Settings, error) {
 func NewSettingsFromValidateSettingsPayload(payload []byte) (Settings, error) {
 	return newSettings(
 		payload,
-		"settings.allowedTypes")
+		"allowedTypes")
 }
 
 func newSettings(payload []byte, paths ...string) (Settings, error) {
