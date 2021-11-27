@@ -1,12 +1,12 @@
 name: psp-volumes
 description: Pod Security Policy that controls usage of volumes
-homepage: https://github.com/kubewarden/psp-volumes-policy
+homepage: https://github.com/kubewarden/volumes-psp-policy
 author:
   name: Kuberwarden devs
   homepage: https://github.com/kubewarden
 download:
   registry: ghcr.io/kubewarden/policies/psp-volumes:__TAG__
-  url: https://github.com/kubewarden/psp-volumes-policy/releases/download/__TAG__/policy.wasm
+  url: https://github.com/kubewarden/volumes-psp-policy/releases/download/__TAG__/policy.wasm
 keywords:
   - PSP
   - Volumes
