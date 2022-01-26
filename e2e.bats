@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 @test "reject because allowedTypes is empty" {
-  run kwctl run policy.wasm -r test_data/request-pod-volumes.json \
+  run kwctl run annotated-policy.wasm -r test_data/request-pod-volumes.json \
     --settings-json \
     '{ "allowedTypes": [] }'
 
@@ -15,7 +15,7 @@
 }
 
 @test "reject because types not present" {
-  run kwctl run policy.wasm -r test_data/request-pod-volumes.json \
+  run kwctl run annotated-policy.wasm -r test_data/request-pod-volumes.json \
     --settings-json \
     '{ "allowedTypes": ["foo", "hostPath"] }'
 
@@ -29,7 +29,7 @@
 }
 
 @test "reject because mix of '*' and other types" {
-  run kwctl run policy.wasm -r test_data/request-pod-volumes.json \
+  run kwctl run annotated-policy.wasm -r test_data/request-pod-volumes.json \
     --settings-json \
     '{ "allowedTypes": ["projected", "hostPath", "*"] }'
 
@@ -43,7 +43,7 @@
 }
 
 @test "accept all types" {
-  run kwctl run policy.wasm -r test_data/request-pod-volumes.json \
+  run kwctl run annotated-policy.wasm -r test_data/request-pod-volumes.json \
     --settings-json \
     '{ "allowedTypes": [ "*" ] }'
 
@@ -56,7 +56,7 @@
 }
 
 @test "accept pods with no volumes" {
-  run kwctl run policy.wasm -r test_data/request-pod-no-volumes.json \
+  run kwctl run annotated-policy.wasm -r test_data/request-pod-no-volumes.json \
     --settings-json \
     '{ "allowedTypes": [ "foo" ] }'
 
@@ -70,7 +70,7 @@
 
 
 @test "accept pods with correct types" {
-  run kwctl run policy.wasm -r test_data/request-pod-volumes.json \
+  run kwctl run annotated-policy.wasm -r test_data/request-pod-volumes.json \
     --settings-json \
     '{ "allowedTypes": [ "hostPath", "projected", "foo" ] }'
 
