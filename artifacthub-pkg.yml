@@ -1,27 +1,21 @@
 ---
-version: 0.1.6
+version: 0.1.7
 name: volumes-psp
 displayName: Volumes PSP
-createdAt: '2022-07-19T16:29:45+02:00'
+createdAt: '2023-01-19T14:46:21+02:00'
 description: Pod Security Policy that controls usage of volumes
 license: Apache-2.0
 homeURL: https://github.com/kubewarden/volumes-psp-policy
 containersImages:
 - name: policy
-  image: ghcr.io/kubewarden/policies/volumes-psp:v0.1.6
-install: |
-  The policy can be obtained using [`kwctl`](https://github.com/kubewarden/kwctl/):
-
-  ```console
-  kwctl pull ghcr.io/kubewarden/policies/volumes-psp:v0.1.6
-  ```
+  image: ghcr.io/kubewarden/policies/volumes-psp:v0.1.7
 keywords:
 - psp
 - volumes
 - pod
 links:
 - name: policy
-  url: https://github.com/kubewarden/volumes-psp-policy/releases/download/v0.1.6/policy.wasm
+  url: https://github.com/kubewarden/volumes-psp-policy/releases/download/v0.1.7/policy.wasm
 - name: source
   url: https://github.com/kubewarden/volumes-psp-policy
 provider:
@@ -32,3 +26,33 @@ annotations:
   kubewarden/resources: Pod
   kubewarden/mutation: false
   kubewarden/contextAware: false
+  kubewarden/rules: |
+    rules:
+    - apiGroups: [""]
+      apiVersions: ["v1"]
+      resources: ["pods"]
+      operations: ["CREATE"]
+  kubewarden/questions-ui: |
+    questions:
+    - default: null
+      description: >-
+        Replacement for the Kubernetes Pod Security Policy that controls the usage
+        of volumes in pods. The policy takes the list of the allowed volume types
+        using the allowedTypes setting. The special value * can be used to allow all
+        kind of volumes.
+      group: Settings
+      required: false
+      hide_input: true
+      type: string
+      variable: description
+    - default: []
+      description: ''
+      tooltip: >-
+        A list of the allowed volume types. Note: no other value can be specified
+        together with *. For example, allowedTypes: ['*', 'configMap'] is not a
+        valid configuration setting.
+      group: Settings
+      label: Allowed types
+      required: false
+      type: array[
+      variable: allowedTypes
