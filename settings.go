@@ -1,78 +1,73 @@
 package main
 
 import (
-	mapset "github.com/deckarep/golang-set"
+	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/kubewarden/gjson"
 	kubewarden "github.com/kubewarden/policy-sdk-go"
-
-	"fmt"
+	easyjson "github.com/mailru/easyjson"
 )
 
 type Settings struct {
-	AllowedTypes mapset.Set `json:"allowedTypes"`
+	AllowedTypes mapset.Set[string] `json:"allowedTypes"`
+}
+
+func NewSettingsFromRaw(rawSettings *RawSettings) Settings {
+	allowedTypes := mapset.NewThreadUnsafeSet[string](rawSettings.AllowedTypes...)
+
+	return Settings{
+		AllowedTypes: allowedTypes,
+	}
 }
 
 // Builds a new Settings instance starting from a validation
 // request payload:
-// {
-//    "request": ...,
-//    "settings": {
-//		"allowedTypes": [
-//			"configMap",
-//			"downwardAPI",
-//			"emptyDir",
-//			"persistentVolumeClaim",
-//			"secret",
-//			"projected"
-//		]
-//    }
-// }
+//
+//	{
+//	   "request": ...,
+//	   "settings": {
+//			"allowedTypes": [
+//				"configMap",
+//				"downwardAPI",
+//				"emptyDir",
+//				"persistentVolumeClaim",
+//				"secret",
+//				"projected"
+//			]
+//	   }
+//	}
 func NewSettingsFromValidationReq(payload []byte) (Settings, error) {
-	return newSettings(
-		payload,
-		"settings.allowedTypes")
+	settingsJson := gjson.GetBytes(payload, "settings")
+
+	rawSettings := RawSettings{}
+	err := easyjson.Unmarshal([]byte(settingsJson.Raw), &rawSettings)
+	if err != nil {
+		return Settings{}, err
+	}
+
+	return NewSettingsFromRaw(&rawSettings), nil
 }
 
 // Builds a new Settings instance starting from a Settings
 // payload:
-// {
-//	  "allowedTypes": [
-//	  	"configMap",
-//	  	"downwardAPI",
-//	  	"emptyDir",
-//	  	"persistentVolumeClaim",
-//	  	"secret",
-//	  	"projected"
-//	  ]
-// }
+//
+//	{
+//		  "allowedTypes": [
+//		  	"configMap",
+//		  	"downwardAPI",
+//		  	"emptyDir",
+//		  	"persistentVolumeClaim",
+//		  	"secret",
+//		  	"projected"
+//		  ]
+//	}
 func NewSettingsFromValidateSettingsPayload(payload []byte) (Settings, error) {
-	return newSettings(
-		payload,
-		"allowedTypes")
-}
-
-func newSettings(payload []byte, paths ...string) (Settings, error) {
-	if len(paths) != 1 {
-		return Settings{}, fmt.Errorf("wrong number of json paths")
-	}
-	data := gjson.GetManyBytes(payload, paths...)
-
-	allowedTypes := mapset.NewThreadUnsafeSet()
-
-	if data[0].String() == "" {
-		// empty settings
-		return Settings{
-			AllowedTypes: allowedTypes,
-		}, nil
+	rawSettings := RawSettings{}
+	err := easyjson.Unmarshal(payload, &rawSettings)
+	if err != nil {
+		return Settings{}, err
 	}
 
-	for _, volumeType := range data[0].Array() {
-		allowedTypes.Add(volumeType.String())
-	}
-
-	return Settings{
-		AllowedTypes: allowedTypes,
-	}, nil
+	return NewSettingsFromRaw(&rawSettings), nil
 }
 
 func (s *Settings) Valid() bool {
