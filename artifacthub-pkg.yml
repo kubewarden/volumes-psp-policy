@@ -4,29 +4,29 @@
 #
 # This config can be saved to its default location with:
 #   kwctl scaffold artifacthub > artifacthub-pkg.yml 
-version: 0.1.10
+version: 0.1.11
 name: volumes-psp
 displayName: Volumes PSP
-createdAt: 2023-07-10T16:00:24.402878805Z
+createdAt: 2023-08-02T16:36:36.193322442Z
 description: Pod Security Policy that controls usage of volumes
 license: Apache-2.0
 homeURL: https://github.com/kubewarden/volumes-psp-policy
 containersImages:
 - name: policy
-  image: ghcr.io/kubewarden/policies/volumes-psp:v0.1.10
+  image: ghcr.io/kubewarden/policies/volumes-psp:v0.1.11
 keywords:
 - psp
 - pod
 - volumes
 links:
 - name: policy
-  url: https://github.com/kubewarden/volumes-psp-policy/releases/download/v0.1.10/policy.wasm
+  url: https://github.com/kubewarden/volumes-psp-policy/releases/download/v0.1.11/policy.wasm
 - name: source
   url: https://github.com/kubewarden/volumes-psp-policy
 install: |
   The policy can be obtained using [`kwctl`](https://github.com/kubewarden/kwctl):
   ```console
-  kwctl pull ghcr.io/kubewarden/policies/volumes-psp:v0.1.10
+  kwctl pull ghcr.io/kubewarden/policies/volumes-psp:v0.1.11
   ```
 maintainers:
 - name: Kubewarden developers
