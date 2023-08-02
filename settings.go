@@ -1,22 +1,15 @@
 package main
 
 import (
+	"encoding/json"
+
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/kubewarden/gjson"
 	kubewarden "github.com/kubewarden/policy-sdk-go"
-	easyjson "github.com/mailru/easyjson"
 )
 
 type Settings struct {
 	AllowedTypes mapset.Set[string] `json:"allowedTypes"`
-}
-
-func NewSettingsFromRaw(rawSettings *RawSettings) Settings {
-	allowedTypes := mapset.NewThreadUnsafeSet[string](rawSettings.AllowedTypes...)
-
-	return Settings{
-		AllowedTypes: allowedTypes,
-	}
 }
 
 // Builds a new Settings instance starting from a validation
@@ -37,14 +30,14 @@ func NewSettingsFromRaw(rawSettings *RawSettings) Settings {
 //	}
 func NewSettingsFromValidationReq(payload []byte) (Settings, error) {
 	settingsJson := gjson.GetBytes(payload, "settings")
+	settings := Settings{}
 
-	rawSettings := RawSettings{}
-	err := easyjson.Unmarshal([]byte(settingsJson.Raw), &rawSettings)
+	err := json.Unmarshal([]byte(settingsJson.Raw), &settings)
 	if err != nil {
 		return Settings{}, err
 	}
 
-	return NewSettingsFromRaw(&rawSettings), nil
+	return settings, nil
 }
 
 // Builds a new Settings instance starting from a Settings
@@ -61,13 +54,14 @@ func NewSettingsFromValidationReq(payload []byte) (Settings, error) {
 //		  ]
 //	}
 func NewSettingsFromValidateSettingsPayload(payload []byte) (Settings, error) {
-	rawSettings := RawSettings{}
-	err := easyjson.Unmarshal(payload, &rawSettings)
+	settings := Settings{}
+
+	err := json.Unmarshal(payload, &settings)
 	if err != nil {
 		return Settings{}, err
 	}
 
-	return NewSettingsFromRaw(&rawSettings), nil
+	return settings, nil
 }
 
 func (s *Settings) Valid() bool {
@@ -75,6 +69,21 @@ func (s *Settings) Valid() bool {
 		return false
 	}
 	return true
+}
+
+func (s *Settings) UnmarshalJSON(data []byte) error {
+	rawSettings := struct {
+		AllowedTypes []string `json:"allowedTypes"`
+	}{}
+
+	err := json.Unmarshal(data, &rawSettings)
+	if err != nil {
+		return err
+	}
+
+	s.AllowedTypes = mapset.NewThreadUnsafeSet[string](rawSettings.AllowedTypes...)
+
+	return nil
 }
 
 func validateSettings(payload []byte) ([]byte, error) {
