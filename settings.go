@@ -72,6 +72,8 @@ func (s *Settings) Valid() bool {
 }
 
 func (s *Settings) UnmarshalJSON(data []byte) error {
+	// This is needed becaus golang-set v2.3.0 has a bug that prevents
+	// the correct unmarshalling of ThreadUnsafeSet types.
 	rawSettings := struct {
 		AllowedTypes []string `json:"allowedTypes"`
 	}{}
