@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"testing"
 
+	mapset "github.com/deckarep/golang-set/v2"
 	kubewarden_protocol "github.com/kubewarden/policy-sdk-go/protocol"
 	kubewarden_testing "github.com/kubewarden/policy-sdk-go/testing"
 )
 
 func TestEmptySettingsLeadsToRejection(t *testing.T) {
-	settings := RawSettings{}
+	settings := Settings{}
 
 	payload, err := kubewarden_testing.BuildValidationRequestFromFixture(
 		"test_data/request-pod-no-volumes.json",
@@ -43,40 +44,40 @@ func TestApproval(t *testing.T) {
 	for _, tcase := range []struct {
 		name     string
 		testData string
-		settings RawSettings
+		settings Settings
 	}{
 		{
 			name:     "pod without volumes",
 			testData: "test_data/request-pod-no-volumes.json",
-			settings: RawSettings{
-				AllowedTypes: []string{
+			settings: Settings{
+				AllowedTypes: mapset.NewThreadUnsafeSet(
 					"configMap",
 					"downwardAPI",
 					"emptyDir",
 					"persistentVolumeClaim",
 					"secret",
 					"projected",
-				},
+				),
 			},
 		},
 		{
 			name:     "bunch of allowed types, some unexistent",
 			testData: "test_data/request-pod-volumes.json",
-			settings: RawSettings{
-				AllowedTypes: []string{
+			settings: Settings{
+				AllowedTypes: mapset.NewThreadUnsafeSet(
 					"hostPath",
 					"projected",
 					"foo",
-				},
+				),
 			},
 		},
 		{
 			name:     "all accepted",
 			testData: "test_data/request-pod-volumes.json",
-			settings: RawSettings{
-				AllowedTypes: []string{
+			settings: Settings{
+				AllowedTypes: mapset.NewThreadUnsafeSet(
 					"*",
-				},
+				),
 			},
 		},
 	} {
@@ -107,25 +108,22 @@ func TestRejection(t *testing.T) {
 	for _, tcase := range []struct {
 		name     string
 		testData string
-		settings RawSettings
+		settings Settings
 		error    string
 	}{
 		{
 			name:     "none accepted, empty AllowedTypes list in settings",
 			testData: "test_data/request-pod-volumes.json",
-			settings: RawSettings{
-				AllowedTypes: []string{},
+			settings: Settings{
+				AllowedTypes: mapset.NewThreadUnsafeSet[string](),
 			},
 			error: "No volume type is allowed",
 		},
 		{
 			name:     "not all types in allowedTypes",
 			testData: "test_data/request-pod-volumes.json",
-			settings: RawSettings{
-				AllowedTypes: []string{
-					"secret",
-					"configMap",
-				},
+			settings: Settings{
+				AllowedTypes: mapset.NewThreadUnsafeSet[string]("secret", "configMap"),
 			},
 			error: "volume 'test-var' of type 'hostPath' is not in the AllowedTypes list;" +
 				" volume 'test-var-local-aaa' of type 'hostPath' is not in the AllowedTypes list;" +
