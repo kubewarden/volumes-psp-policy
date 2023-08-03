@@ -1,0 +1,26 @@
+# psp-volumes-policy
+
+Replacement for the Kubernetes Pod Security Policy that controls the usage of
+volumes in pods.
+
+## Settings
+
+The policy takes the list of the allowed volume types using the `allowedTypes`
+setting. Example:
+
+```yaml
+allowedTypes:
+- configMap
+- downwardAPI
+- emptyDir
+- persistentVolumeClaim
+- secret
+- projected
+```
+
+The default value of allowedTypes is `[ ]`. The special value `*` can be used
+to allow all kind of volumes.
+
+No other value can be specified together with `*`. For example,
+`allowedTypes: ['*', 'configMap']` is not a valid configuration setting.
+
