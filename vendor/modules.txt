@@ -1,4 +1,4 @@
-# github.com/deckarep/golang-set/v2 v2.5.0
+# github.com/deckarep/golang-set/v2 v2.6.0
 ## explicit; go 1.18
 github.com/deckarep/golang-set/v2
 # github.com/francoispqt/gojay v0.0.0-20181220093123-f2cc13a668ca
