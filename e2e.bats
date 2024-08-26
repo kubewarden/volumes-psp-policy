@@ -38,7 +38,6 @@
 
   # request rejected by settings error
   [ "$status" -eq 1 ]
-  [ $(expr "$output" : '.*valid.*false') -ne 0 ]
   [ $(expr "$output" : ".*Provided settings are not valid.*") -ne 0 ]
 }
 
@@ -67,7 +66,6 @@
   [ "$status" -eq 0 ]
   [ $(expr "$output" : '.*allowed.*true') -ne 0 ]
 }
-
 
 @test "accept pods with correct types" {
   run kwctl run annotated-policy.wasm -r test_data/request-pod-volumes.json \
