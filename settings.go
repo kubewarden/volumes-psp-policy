@@ -9,7 +9,8 @@ import (
 )
 
 type Settings struct {
-	AllowedTypes mapset.Set[string] `json:"allowedTypes"`
+	AllowedTypes                mapset.Set[string] `json:"allowedTypes"`
+	IgnoreInitContainersVolumes bool               `json:"ignoreInitContainersVolumes,omitempty"`
 }
 
 // Builds a new Settings instance starting from a validation
@@ -75,7 +76,8 @@ func (s *Settings) UnmarshalJSON(data []byte) error {
 	// This is needed becaus golang-set v2.3.0 has a bug that prevents
 	// the correct unmarshalling of ThreadUnsafeSet types.
 	rawSettings := struct {
-		AllowedTypes []string `json:"allowedTypes"`
+		AllowedTypes                []string `json:"allowedTypes"`
+		IgnoreInitContainersVolumes bool     `json:"ignoreInitContainersVolumes,omitempty"`
 	}{}
 
 	err := json.Unmarshal(data, &rawSettings)
@@ -84,6 +86,7 @@ func (s *Settings) UnmarshalJSON(data []byte) error {
 	}
 
 	s.AllowedTypes = mapset.NewThreadUnsafeSet[string](rawSettings.AllowedTypes...)
+	s.IgnoreInitContainersVolumes = rawSettings.IgnoreInitContainersVolumes
 
 	return nil
 }

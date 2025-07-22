@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 
 	onelog "github.com/francoispqt/onelog"
@@ -38,6 +37,32 @@ func validate(payload []byte) ([]byte, error) {
 		return kubewarden.AcceptRequest()
 	}
 
+	// Collect volume names used by initContainers and containers
+	initContainerVolumeNames := map[string]struct{}{}
+	containerVolumeNames := map[string]struct{}{}
+	if settings.IgnoreInitContainersVolumes {
+		initContainers := gjson.GetBytes(payload, "request.object.spec.initContainers")
+		for _, container := range initContainers.Array() {
+			mounts := container.Get("volumeMounts")
+			for _, mount := range mounts.Array() {
+				name := mount.Get("name").String()
+				if name != "" {
+					initContainerVolumeNames[name] = struct{}{}
+				}
+			}
+		}
+		containers := gjson.GetBytes(payload, "request.object.spec.containers")
+		for _, container := range containers.Array() {
+			mounts := container.Get("volumeMounts")
+			for _, mount := range mounts.Array() {
+				name := mount.Get("name").String()
+				if name != "" {
+					containerVolumeNames[name] = struct{}{}
+				}
+			}
+		}
+	}
+
 	logger.DebugWithFields("validating pod object", func(e onelog.Entry) {
 		name := gjson.GetBytes(payload, "request.object.metadata.name").String()
 		namespace := gjson.GetBytes(payload,
@@ -59,15 +84,23 @@ func validate(payload []byte) ([]byte, error) {
 			return true // keep iterating
 		})
 
+		if settings.IgnoreInitContainersVolumes {
+			// Skip volumes that are only used by initContainers and not by containers
+			if _, found := initContainerVolumeNames[volumeName]; found {
+				if _, usedByContainer := containerVolumeNames[volumeName]; !usedByContainer {
+					continue
+				}
+			}
+		}
+
 		if !settings.AllowedTypes.Contains(volumeType) {
 			errMsg := fmt.Sprintf("volume '%s' of type '%s' is not in the AllowedTypes list",
 				volumeName, volumeType)
 			if err == nil {
-				err = errors.New(errMsg)
+				err = fmt.Errorf("%s", errMsg)
 			} else {
 				err = fmt.Errorf("%w; %s", err, errMsg)
 			}
-
 		}
 	}
 
