@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	onelog "github.com/francoispqt/onelog"
@@ -97,7 +98,7 @@ func validate(payload []byte) ([]byte, error) {
 			errMsg := fmt.Sprintf("volume '%s' of type '%s' is not in the AllowedTypes list",
 				volumeName, volumeType)
 			if err == nil {
-				err = fmt.Errorf("%s", errMsg)
+				err = errors.New(errMsg)
 			} else {
 				err = fmt.Errorf("%w; %s", err, errMsg)
 			}
