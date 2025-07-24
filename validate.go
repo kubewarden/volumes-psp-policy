@@ -43,25 +43,10 @@ func validate(payload []byte) ([]byte, error) {
 	containerVolumeNames := map[string]struct{}{}
 	if settings.IgnoreInitContainersVolumes {
 		initContainers := gjson.GetBytes(payload, "request.object.spec.initContainers")
-		for _, container := range initContainers.Array() {
-			mounts := container.Get("volumeMounts")
-			for _, mount := range mounts.Array() {
-				name := mount.Get("name").String()
-				if name != "" {
-					initContainerVolumeNames[name] = struct{}{}
-				}
-			}
-		}
+		initContainerVolumeNames = getVolumeMountNames(initContainers)
+
 		containers := gjson.GetBytes(payload, "request.object.spec.containers")
-		for _, container := range containers.Array() {
-			mounts := container.Get("volumeMounts")
-			for _, mount := range mounts.Array() {
-				name := mount.Get("name").String()
-				if name != "" {
-					containerVolumeNames[name] = struct{}{}
-				}
-			}
-		}
+		containerVolumeNames = getVolumeMountNames(containers)
 	}
 
 	logger.DebugWithFields("validating pod object", func(e onelog.Entry) {
@@ -119,4 +104,19 @@ func validate(payload []byte) ([]byte, error) {
 	}
 
 	return kubewarden.AcceptRequest()
+}
+
+// getVolumeMountNames extracts volume mount names from a list of containers.
+func getVolumeMountNames(containers gjson.Result) map[string]struct{} {
+	volumeNames := map[string]struct{}{}
+	for _, container := range containers.Array() {
+		mounts := container.Get("volumeMounts")
+		for _, mount := range mounts.Array() {
+			name := mount.Get("name").String()
+			if name != "" {
+				volumeNames[name] = struct{}{}
+			}
+		}
+	}
+	return volumeNames
 }
