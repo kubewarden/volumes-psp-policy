@@ -27,3 +27,6 @@ to allow all kind of volumes.
 No other value can be specified together with `*`. For example,
 `allowedTypes: ['*', 'configMap']` is not a valid configuration setting.
 
+The policy also takes an optional `ignoreInitContainersVolumes` setting. This setting defaults to `false`.
+When set to `true`, volumes that are exclusively used by `initContainers` (and not by regular `containers`) are ignored during the validation process.
+
