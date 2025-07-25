@@ -71,11 +71,12 @@ func validate(payload []byte) ([]byte, error) {
 		})
 
 		if settings.IgnoreInitContainersVolumes {
-			// Skip volumes that are only used by initContainers and not by containers
-			if _, found := initContainerVolumeNames[volumeName]; found {
-				if _, usedByContainer := containerVolumeNames[volumeName]; !usedByContainer {
-					continue
-				}
+			_, usedByInitContainer := initContainerVolumeNames[volumeName]
+			_, usedByContainer := containerVolumeNames[volumeName]
+
+			if usedByInitContainer && !usedByContainer {
+				// Skip volumes that are only used by initContainers and not by containers
+				continue
 			}
 		}
 
