@@ -99,3 +99,50 @@ func TestEmptySettingsAreValid(t *testing.T) {
 		t.Errorf("Settings are reported as not valid")
 	}
 }
+
+func TestParsingSettingsWithIgnoreInitContainersVolumes(t *testing.T) {
+	request := `
+	{
+		"request": "doesn't matter here",
+		"settings": {
+			"allowedTypes": ["configMap"],
+			"ignoreInitContainersVolumes": true
+		}
+	}
+	`
+	rawRequest := []byte(request)
+
+	settings, err := NewSettingsFromValidationReq(rawRequest)
+	if err != nil {
+		t.Errorf("Unexpected error %+v", err)
+	}
+
+	if !settings.IgnoreInitContainersVolumes {
+		t.Errorf("Expected IgnoreInitContainersVolumes to be true")
+	}
+
+	if !settings.AllowedTypes.Contains("configMap") {
+		t.Errorf("Missing allowedTypes value")
+	}
+}
+
+func TestParsingSettingsWithIgnoreInitContainersVolumesDefault(t *testing.T) {
+	request := `
+	{
+		"request": "doesn't matter here",
+		"settings": {
+			"allowedTypes": ["configMap"]
+		}
+	}
+	`
+	rawRequest := []byte(request)
+
+	settings, err := NewSettingsFromValidationReq(rawRequest)
+	if err != nil {
+		t.Errorf("Unexpected error %+v", err)
+	}
+
+	if settings.IgnoreInitContainersVolumes {
+		t.Errorf("Expected IgnoreInitContainersVolumes to be false by default")
+	}
+}

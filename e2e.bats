@@ -79,3 +79,29 @@
   [ "$status" -eq 0 ]
   [ $(expr "$output" : '.*allowed.*true') -ne 0 ]
 }
+
+@test "ignore initContainers volumes: only main container volumes are checked" {
+  run kwctl run annotated-policy.wasm -r test_data/request-pod-volumes.json \
+    --settings-json \
+    '{ "allowedTypes": ["projected"], "ignoreInitContainersVolumes": true }'
+
+  echo "output = ${output}"
+
+  # request rejected, only main container volumes not allowed
+  [ "$status" -eq 0 ]
+  [ $(expr "$output" : '.*allowed.*false') -ne 0 ]
+  [ $(expr "$output" : ".*volume 'test-var' of type 'hostPath' is not in the AllowedTypes list.*") -ne 0 ]
+  [ $(expr "$output" : ".*volume 'test-var-local-aaa' of type 'hostPath' is not in the AllowedTypes list.*") -ne 0 ]
+}
+
+@test "ignore initContainers volumes: all main container volumes allowed" {
+  run kwctl run annotated-policy.wasm -r test_data/request-pod-volumes.json \
+    --settings-json \
+    '{ "allowedTypes": ["projected", "hostPath"], "ignoreInitContainersVolumes": true }'
+
+  echo "output = ${output}"
+
+  # request accepted
+  [ "$status" -eq 0 ]
+  [ $(expr "$output" : '.*allowed.*true') -ne 0 ]
+}

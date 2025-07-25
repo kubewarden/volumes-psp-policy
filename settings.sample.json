@@ -6,5 +6,6 @@
       "persistentVolumeClaim",
       "secret",
       "projected"
-   ]
+   ],
+   "ignoreInitContainersVolumes": true
 }

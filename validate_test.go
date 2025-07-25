@@ -157,3 +157,58 @@ func TestRejection(t *testing.T) {
 		}
 	}
 }
+
+func TestIgnoreInitContainersVolumes(t *testing.T) {
+	settings := Settings{
+		AllowedTypes:                mapset.NewThreadUnsafeSet[string]("projected"),
+		IgnoreInitContainersVolumes: true,
+	}
+	payload, err := kubewarden_testing.BuildValidationRequestFromFixture(
+		"test_data/request-pod-volumes.json",
+		&settings)
+	if err != nil {
+		t.Fatalf("Unexpected error: %+v", err)
+	}
+
+	responsePayload, err := validate(payload)
+	if err != nil {
+		t.Fatalf("Expected no error, got '%s'", err.Error())
+	}
+
+	var response kubewarden_protocol.ValidationResponse
+	if err := json.Unmarshal(responsePayload, &response); err != nil {
+		t.Fatalf("got unexpected error '%+v'", err)
+	}
+
+	if response.Accepted != false {
+		t.Errorf("got unexpected approval, should be rejected for non-initContainers volumes")
+	}
+
+	expectedError := "volume 'test-var' of type 'hostPath' is not in the AllowedTypes list; volume 'test-var-local-aaa' of type 'hostPath' is not in the AllowedTypes list"
+	if *response.Message != expectedError {
+		t.Errorf("got '%s' instead of '%s'", *response.Message, expectedError)
+	}
+
+	// Now allow initContainers volume, should not report error (AllowedTypes: projected, ignoreInitContainersVolumes: true, and test-var is only used by initContainers)
+	settings2 := Settings{
+		AllowedTypes:                mapset.NewThreadUnsafeSet[string]("projected", "hostPath"),
+		IgnoreInitContainersVolumes: true,
+	}
+	payload2, err := kubewarden_testing.BuildValidationRequestFromFixture(
+		"test_data/request-pod-volumes.json",
+		&settings2)
+	if err != nil {
+		t.Fatalf("Unexpected error: %+v", err)
+	}
+	responsePayload2, err := validate(payload2)
+	if err != nil {
+		t.Fatalf("Expected no error, got '%s'", err.Error())
+	}
+	var response2 kubewarden_protocol.ValidationResponse
+	if err := json.Unmarshal(responsePayload2, &response2); err != nil {
+		t.Fatalf("got unexpected error '%+v'", err)
+	}
+	if response2.Accepted != true {
+		t.Errorf("got unexpected rejection, should be approved for allowed volumes")
+	}
+}
